@@ -58,13 +58,13 @@ func testAccCheckAWSAPIGatewayGatewayResponseExists(n string, res *apigateway.Up
 			return fmt.Errorf("No API Gateway Gateway Response ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetGatewayResponseInput{
 			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.main"].Primary.ID),
 			ResponseType: aws.String(rs.Primary.Attributes["response_type"]),
 		}
-		describe, err := conn.GetGatewayResponse(req)
+		describe, err := apigatewayconn.GetGatewayResponse(req)
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func testAccCheckAWSAPIGatewayGatewayResponseExists(n string, res *apigateway.Up
 }
 
 func testAccCheckAWSAPIGatewayGatewayResponseDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_gateway_response" {
@@ -87,7 +87,7 @@ func testAccCheckAWSAPIGatewayGatewayResponseDestroy(s *terraform.State) error {
 			RestApiId:    aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.main"].Primary.ID),
 			ResponseType: aws.String(rs.Primary.Attributes["response_type"]),
 		}
-		_, err := conn.GetGatewayResponse(req)
+		_, err := apigatewayconn.GetGatewayResponse(req)
 
 		if err == nil {
 			return fmt.Errorf("API Gateway Gateway Response still exists")

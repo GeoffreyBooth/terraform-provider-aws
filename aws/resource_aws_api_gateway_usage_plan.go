@@ -109,7 +109,7 @@ func resourceAwsApiGatewayUsagePlan() *schema.Resource {
 }
 
 func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Creating API Gateway Usage Plan")
 
 	params := &apigateway.CreateUsagePlanInput{
@@ -194,7 +194,7 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 		params.Throttle = ts
 	}
 
-	up, err := conn.CreateUsagePlan(params)
+	up, err := apigatewayconn.CreateUsagePlan(params)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Usage Plan: %s", err)
 	}
@@ -215,7 +215,7 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 			},
 		}
 
-		up, err = conn.UpdateUsagePlan(updateParameters)
+		up, err = apigatewayconn.UpdateUsagePlan(updateParameters)
 		if err != nil {
 			return fmt.Errorf("Error creating the API Gateway Usage Plan product code: %s", err)
 		}
@@ -225,10 +225,10 @@ func resourceAwsApiGatewayUsagePlanCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsApiGatewayUsagePlanRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway Usage Plan: %s", d.Id())
 
-	up, err := conn.GetUsagePlan(&apigateway.GetUsagePlanInput{
+	up, err := apigatewayconn.GetUsagePlan(&apigateway.GetUsagePlanInput{
 		UsagePlanId: aws.String(d.Id()),
 	})
 	if err != nil {
@@ -266,7 +266,7 @@ func resourceAwsApiGatewayUsagePlanRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Updating API Gateway Usage Plan")
 
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -448,7 +448,7 @@ func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface
 		PatchOperations: operations,
 	}
 
-	_, err := conn.UpdateUsagePlan(params)
+	_, err := apigatewayconn.UpdateUsagePlan(params)
 	if err != nil {
 		return fmt.Errorf("Error updating API Gateway Usage Plan: %s", err)
 	}
@@ -457,7 +457,7 @@ func resourceAwsApiGatewayUsagePlanUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsApiGatewayUsagePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	// Removing existing api stages associated
 	if apistages, ok := d.GetOk("api_stages"); ok {
@@ -475,7 +475,7 @@ func resourceAwsApiGatewayUsagePlanDelete(d *schema.ResourceData, meta interface
 			})
 		}
 
-		_, err := conn.UpdateUsagePlan(&apigateway.UpdateUsagePlanInput{
+		_, err := apigatewayconn.UpdateUsagePlan(&apigateway.UpdateUsagePlanInput{
 			UsagePlanId:     aws.String(d.Id()),
 			PatchOperations: operations,
 		})
@@ -487,7 +487,7 @@ func resourceAwsApiGatewayUsagePlanDelete(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Deleting API Gateway Usage Plan: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteUsagePlan(&apigateway.DeleteUsagePlanInput{
+		_, err := apigatewayconn.DeleteUsagePlan(&apigateway.DeleteUsagePlanInput{
 			UsagePlanId: aws.String(d.Id()),
 		})
 

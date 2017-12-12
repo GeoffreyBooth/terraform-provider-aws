@@ -104,7 +104,7 @@ func testAccCheckAWSAPIGatewayIntegrationResponseExists(n string, res *apigatewa
 			return fmt.Errorf("No API Gateway Method ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetIntegrationResponseInput{
 			HttpMethod: aws.String("GET"),
@@ -112,7 +112,7 @@ func testAccCheckAWSAPIGatewayIntegrationResponseExists(n string, res *apigatewa
 			RestApiId:  aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 			StatusCode: aws.String(rs.Primary.Attributes["status_code"]),
 		}
-		describe, err := conn.GetIntegrationResponse(req)
+		describe, err := apigatewayconn.GetIntegrationResponse(req)
 		if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func testAccCheckAWSAPIGatewayIntegrationResponseExists(n string, res *apigatewa
 }
 
 func testAccCheckAWSAPIGatewayIntegrationResponseDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_integration_response" {
@@ -137,7 +137,7 @@ func testAccCheckAWSAPIGatewayIntegrationResponseDestroy(s *terraform.State) err
 			RestApiId:  aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 			StatusCode: aws.String(rs.Primary.Attributes["status_code"]),
 		}
-		_, err := conn.GetIntegrationResponse(req)
+		_, err := apigatewayconn.GetIntegrationResponse(req)
 
 		if err == nil {
 			return fmt.Errorf("API Gateway Method still exists")

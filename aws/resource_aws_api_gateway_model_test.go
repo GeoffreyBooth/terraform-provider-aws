@@ -63,13 +63,13 @@ func testAccCheckAWSAPIGatewayModelExists(n string, res *apigateway.Model) resou
 			return fmt.Errorf("No API Gateway Model ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetModelInput{
 			ModelName: aws.String("test"),
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		describe, err := conn.GetModel(req)
+		describe, err := apigatewayconn.GetModel(req)
 		if err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func testAccCheckAWSAPIGatewayModelExists(n string, res *apigateway.Model) resou
 }
 
 func testAccCheckAWSAPIGatewayModelDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_model" {
@@ -94,7 +94,7 @@ func testAccCheckAWSAPIGatewayModelDestroy(s *terraform.State) error {
 		req := &apigateway.GetModelsInput{
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		describe, err := conn.GetModels(req)
+		describe, err := apigatewayconn.GetModels(req)
 
 		if err == nil {
 			if len(describe.Items) != 0 &&

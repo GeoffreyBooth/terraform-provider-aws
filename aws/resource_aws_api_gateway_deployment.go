@@ -69,7 +69,7 @@ func resourceAwsApiGatewayDeployment() *schema.Resource {
 }
 
 func resourceAwsApiGatewayDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	// Create the gateway
 	log.Printf("[DEBUG] Creating API Gateway Deployment")
 
@@ -79,7 +79,7 @@ func resourceAwsApiGatewayDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	var err error
-	deployment, err := conn.CreateDeployment(&apigateway.CreateDeploymentInput{
+	deployment, err := apigatewayconn.CreateDeployment(&apigateway.CreateDeploymentInput{
 		RestApiId:        aws.String(d.Get("rest_api_id").(string)),
 		StageName:        aws.String(d.Get("stage_name").(string)),
 		Description:      aws.String(d.Get("description").(string)),
@@ -97,11 +97,11 @@ func resourceAwsApiGatewayDeploymentCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDeploymentRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Deployment %s", d.Id())
 	restApiId := d.Get("rest_api_id").(string)
-	out, err := conn.GetDeployment(&apigateway.GetDeploymentInput{
+	out, err := apigatewayconn.GetDeployment(&apigateway.GetDeploymentInput{
 		RestApiId:    aws.String(restApiId),
 		DeploymentId: aws.String(d.Id()),
 	})
@@ -150,11 +150,11 @@ func resourceAwsApiGatewayDeploymentUpdateOperations(d *schema.ResourceData) []*
 }
 
 func resourceAwsApiGatewayDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Updating API Gateway API Key: %s", d.Id())
 
-	_, err := conn.UpdateDeployment(&apigateway.UpdateDeploymentInput{
+	_, err := apigatewayconn.UpdateDeployment(&apigateway.UpdateDeploymentInput{
 		DeploymentId:    aws.String(d.Id()),
 		RestApiId:       aws.String(d.Get("rest_api_id").(string)),
 		PatchOperations: resourceAwsApiGatewayDeploymentUpdateOperations(d),
@@ -167,19 +167,19 @@ func resourceAwsApiGatewayDeploymentUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Deployment: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		log.Printf("[DEBUG] schema is %#v", d)
-		if _, err := conn.DeleteStage(&apigateway.DeleteStageInput{
+		if _, err := apigatewayconn.DeleteStage(&apigateway.DeleteStageInput{
 			StageName: aws.String(d.Get("stage_name").(string)),
 			RestApiId: aws.String(d.Get("rest_api_id").(string)),
 		}); err == nil {
 			return nil
 		}
 
-		_, err := conn.DeleteDeployment(&apigateway.DeleteDeploymentInput{
+		_, err := apigatewayconn.DeleteDeployment(&apigateway.DeleteDeploymentInput{
 			DeploymentId: aws.String(d.Id()),
 			RestApiId:    aws.String(d.Get("rest_api_id").(string)),
 		})

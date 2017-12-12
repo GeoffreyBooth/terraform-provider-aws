@@ -42,14 +42,14 @@ func resourceAwsApiGatewayClientCertificate() *schema.Resource {
 }
 
 func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.GenerateClientCertificateInput{}
 	if v, ok := d.GetOk("description"); ok {
 		input.Description = aws.String(v.(string))
 	}
 	log.Printf("[DEBUG] Generating API Gateway Client Certificate: %s", input)
-	out, err := conn.GenerateClientCertificate(&input)
+	out, err := apigatewayconn.GenerateClientCertificate(&input)
 	if err != nil {
 		return fmt.Errorf("Failed to generate client certificate: %s", err)
 	}
@@ -60,12 +60,12 @@ func resourceAwsApiGatewayClientCertificateCreate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.GetClientCertificateInput{
 		ClientCertificateId: aws.String(d.Id()),
 	}
-	out, err := conn.GetClientCertificate(&input)
+	out, err := apigatewayconn.GetClientCertificate(&input)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
 			log.Printf("[WARN] API Gateway Client Certificate %s not found, removing", d.Id())
@@ -85,7 +85,7 @@ func resourceAwsApiGatewayClientCertificateRead(d *schema.ResourceData, meta int
 }
 
 func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	operations := make([]*apigateway.PatchOperation, 0)
 	if d.HasChange("description") {
@@ -102,7 +102,7 @@ func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta i
 	}
 
 	log.Printf("[DEBUG] Updating API Gateway Client Certificate: %s", input)
-	_, err := conn.UpdateClientCertificate(&input)
+	_, err := apigatewayconn.UpdateClientCertificate(&input)
 	if err != nil {
 		return fmt.Errorf("Updating API Gateway Client Certificate failed: %s", err)
 	}
@@ -111,12 +111,12 @@ func resourceAwsApiGatewayClientCertificateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayClientCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Client Certificate: %s", d.Id())
 	input := apigateway.DeleteClientCertificateInput{
 		ClientCertificateId: aws.String(d.Id()),
 	}
-	_, err := conn.DeleteClientCertificate(&input)
+	_, err := apigatewayconn.DeleteClientCertificate(&input)
 	if err != nil {
 		return fmt.Errorf("Deleting API Gateway Client Certificate failed: %s", err)
 	}

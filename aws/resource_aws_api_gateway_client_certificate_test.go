@@ -69,12 +69,12 @@ func testAccCheckAWSAPIGatewayClientCertificateExists(n string, res *apigateway.
 			return fmt.Errorf("No API Gateway Client Certificate ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetClientCertificateInput{
 			ClientCertificateId: aws.String(rs.Primary.ID),
 		}
-		out, err := conn.GetClientCertificate(req)
+		out, err := apigatewayconn.GetClientCertificate(req)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func testAccCheckAWSAPIGatewayClientCertificateExists(n string, res *apigateway.
 }
 
 func testAccCheckAWSAPIGatewayClientCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_client_certificate" {
@@ -96,7 +96,7 @@ func testAccCheckAWSAPIGatewayClientCertificateDestroy(s *terraform.State) error
 		req := &apigateway.GetClientCertificateInput{
 			ClientCertificateId: aws.String(rs.Primary.ID),
 		}
-		out, err := conn.GetClientCertificate(req)
+		out, err := apigatewayconn.GetClientCertificate(req)
 		if err == nil {
 			return fmt.Errorf("API Gateway Client Certificate still exists: %s", out)
 		}

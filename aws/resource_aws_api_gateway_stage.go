@@ -63,7 +63,7 @@ func resourceAwsApiGatewayStage() *schema.Resource {
 }
 
 func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	d.Partial(true)
 
@@ -96,7 +96,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 		input.Variables = aws.StringMap(variables)
 	}
 
-	out, err := conn.CreateStage(&input)
+	out, err := apigatewayconn.CreateStage(&input)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Stage: %s", err)
 	}
@@ -117,7 +117,7 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 				"FLUSH_IN_PROGRESS",
 			},
 			Target: []string{"AVAILABLE"},
-			Refresh: apiGatewayStageCacheRefreshFunc(conn,
+			Refresh: apiGatewayStageCacheRefreshFunc(apigatewayconn,
 				d.Get("rest_api_id").(string),
 				d.Get("stage_name").(string)),
 			Timeout: 90 * time.Minute,
@@ -140,14 +140,14 @@ func resourceAwsApiGatewayStageCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Stage %s", d.Id())
 	input := apigateway.GetStageInput{
 		RestApiId: aws.String(d.Get("rest_api_id").(string)),
 		StageName: aws.String(d.Get("stage_name").(string)),
 	}
-	stage, err := conn.GetStage(&input)
+	stage, err := apigatewayconn.GetStage(&input)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
 			log.Printf("[WARN] API Gateway Stage (%s) not found, removing from state", d.Id())
@@ -177,7 +177,7 @@ func resourceAwsApiGatewayStageRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	d.Partial(true)
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -239,7 +239,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 		PatchOperations: operations,
 	}
 	log.Printf("[DEBUG] Updating API Gateway Stage: %s", input)
-	out, err := conn.UpdateStage(&input)
+	out, err := apigatewayconn.UpdateStage(&input)
 	if err != nil {
 		return fmt.Errorf("Updating API Gateway Stage failed: %s", err)
 	}
@@ -261,7 +261,7 @@ func resourceAwsApiGatewayStageUpdate(d *schema.ResourceData, meta interface{}) 
 				// which causes the stage to remain in deletion state forever
 				"DELETE_IN_PROGRESS",
 			},
-			Refresh: apiGatewayStageCacheRefreshFunc(conn,
+			Refresh: apiGatewayStageCacheRefreshFunc(apigatewayconn,
 				d.Get("rest_api_id").(string),
 				d.Get("stage_name").(string)),
 			Timeout: 30 * time.Minute,
@@ -311,13 +311,13 @@ func diffVariablesOps(prefix string, oldVars, newVars map[string]interface{}) []
 	return ops
 }
 
-func apiGatewayStageCacheRefreshFunc(conn *apigateway.APIGateway, apiId, stageName string) func() (interface{}, string, error) {
+func apiGatewayStageCacheRefreshFunc(apigatewayconn *apigateway.APIGateway, apiId, stageName string) func() (interface{}, string, error) {
 	return func() (interface{}, string, error) {
 		input := apigateway.GetStageInput{
 			RestApiId: aws.String(apiId),
 			StageName: aws.String(stageName),
 		}
-		out, err := conn.GetStage(&input)
+		out, err := apigatewayconn.GetStage(&input)
 		if err != nil {
 			return 42, "", err
 		}
@@ -327,13 +327,13 @@ func apiGatewayStageCacheRefreshFunc(conn *apigateway.APIGateway, apiId, stageNa
 }
 
 func resourceAwsApiGatewayStageDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Stage: %s", d.Id())
 	input := apigateway.DeleteStageInput{
 		RestApiId: aws.String(d.Get("rest_api_id").(string)),
 		StageName: aws.String(d.Get("stage_name").(string)),
 	}
-	_, err := conn.DeleteStage(&input)
+	_, err := apigatewayconn.DeleteStage(&input)
 	if err != nil {
 		return fmt.Errorf("Deleting API Gateway Stage failed: %s", err)
 	}

@@ -60,7 +60,7 @@ func resourceAwsApiGatewayAuthorizer() *schema.Resource {
 }
 
 func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.CreateAuthorizerInput{
 		AuthorizerUri:  aws.String(d.Get("authorizer_uri").(string)),
@@ -81,7 +81,7 @@ func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interfac
 	}
 
 	log.Printf("[INFO] Creating API Gateway Authorizer: %s", input)
-	out, err := conn.CreateAuthorizer(&input)
+	out, err := apigatewayconn.CreateAuthorizer(&input)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Authorizer: %s", err)
 	}
@@ -92,7 +92,7 @@ func resourceAwsApiGatewayAuthorizerCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[INFO] Reading API Gateway Authorizer %s", d.Id())
 	input := apigateway.GetAuthorizerInput{
@@ -100,7 +100,7 @@ func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{
 		RestApiId:    aws.String(d.Get("rest_api_id").(string)),
 	}
 
-	authorizer, err := conn.GetAuthorizer(&input)
+	authorizer, err := apigatewayconn.GetAuthorizer(&input)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
 			log.Printf("[WARN] No API Gateway Authorizer found: %s", input)
@@ -123,7 +123,7 @@ func resourceAwsApiGatewayAuthorizerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceAwsApiGatewayAuthorizerUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.UpdateAuthorizerInput{
 		AuthorizerId: aws.String(d.Id()),
@@ -184,7 +184,7 @@ func resourceAwsApiGatewayAuthorizerUpdate(d *schema.ResourceData, meta interfac
 	input.PatchOperations = operations
 
 	log.Printf("[INFO] Updating API Gateway Authorizer: %s", input)
-	_, err := conn.UpdateAuthorizer(&input)
+	_, err := apigatewayconn.UpdateAuthorizer(&input)
 	if err != nil {
 		return fmt.Errorf("Updating API Gateway Authorizer failed: %s", err)
 	}
@@ -193,13 +193,13 @@ func resourceAwsApiGatewayAuthorizerUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayAuthorizerDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	input := apigateway.DeleteAuthorizerInput{
 		AuthorizerId: aws.String(d.Id()),
 		RestApiId:    aws.String(d.Get("rest_api_id").(string)),
 	}
 	log.Printf("[INFO] Deleting API Gateway Authorizer: %s", input)
-	_, err := conn.DeleteAuthorizer(&input)
+	_, err := apigatewayconn.DeleteAuthorizer(&input)
 	if err != nil {
 		// XXX: Figure out a way to delete the method that depends on the authorizer first
 		// otherwise the authorizer will be dangling until the API is deleted

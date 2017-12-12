@@ -56,7 +56,7 @@ func resourceAwsApiGatewayRestApi() *schema.Resource {
 }
 
 func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Creating API Gateway")
 
 	var description *string
@@ -74,7 +74,7 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 		params.BinaryMediaTypes = expandStringList(binaryMediaTypes.([]interface{}))
 	}
 
-	gateway, err := conn.CreateRestApi(params)
+	gateway, err := apigatewayconn.CreateRestApi(params)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway: %s", err)
 	}
@@ -83,7 +83,7 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 
 	if body, ok := d.GetOk("body"); ok {
 		log.Printf("[DEBUG] Initializing API Gateway from OpenAPI spec %s", d.Id())
-		_, err := conn.PutRestApi(&apigateway.PutRestApiInput{
+		_, err := apigatewayconn.PutRestApi(&apigateway.PutRestApiInput{
 			RestApiId: gateway.Id,
 			Mode:      aws.String(apigateway.PutModeOverwrite),
 			Body:      []byte(body.(string)),
@@ -101,9 +101,9 @@ func resourceAwsApiGatewayRestApiCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayRestApiRefreshResources(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
-	resp, err := conn.GetResources(&apigateway.GetResourcesInput{
+	resp, err := apigatewayconn.GetResources(&apigateway.GetResourcesInput{
 		RestApiId: aws.String(d.Id()),
 	})
 	if err != nil {
@@ -121,10 +121,10 @@ func resourceAwsApiGatewayRestApiRefreshResources(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayRestApiRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway %s", d.Id())
 
-	api, err := conn.GetRestApi(&apigateway.GetRestApiInput{
+	api, err := apigatewayconn.GetRestApi(&apigateway.GetRestApiInput{
 		RestApiId: aws.String(d.Id()),
 	})
 	if err != nil {
@@ -197,13 +197,13 @@ func resourceAwsApiGatewayRestApiUpdateOperations(d *schema.ResourceData) []*api
 }
 
 func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway %s", d.Id())
 
 	if d.HasChange("body") {
 		if body, ok := d.GetOk("body"); ok {
 			log.Printf("[DEBUG] Updating API Gateway from OpenAPI spec: %s", d.Id())
-			_, err := conn.PutRestApi(&apigateway.PutRestApiInput{
+			_, err := apigatewayconn.PutRestApi(&apigateway.PutRestApiInput{
 				RestApiId: aws.String(d.Id()),
 				Mode:      aws.String(apigateway.PutModeOverwrite),
 				Body:      []byte(body.(string)),
@@ -214,7 +214,7 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	_, err := conn.UpdateRestApi(&apigateway.UpdateRestApiInput{
+	_, err := apigatewayconn.UpdateRestApi(&apigateway.UpdateRestApiInput{
 		RestApiId:       aws.String(d.Id()),
 		PatchOperations: resourceAwsApiGatewayRestApiUpdateOperations(d),
 	})
@@ -228,11 +228,11 @@ func resourceAwsApiGatewayRestApiUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceAwsApiGatewayRestApiDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway: %s", d.Id())
 
 	return resource.Retry(10*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteRestApi(&apigateway.DeleteRestApiInput{
+		_, err := apigatewayconn.DeleteRestApi(&apigateway.DeleteRestApiInput{
 			RestApiId: aws.String(d.Id()),
 		})
 		if err == nil {

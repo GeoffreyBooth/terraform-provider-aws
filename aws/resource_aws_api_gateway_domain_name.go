@@ -83,7 +83,7 @@ func resourceAwsApiGatewayDomainName() *schema.Resource {
 }
 
 func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Creating API Gateway Domain Name")
 
 	params := &apigateway.CreateDomainNameInput{
@@ -110,7 +110,7 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 		params.CertificatePrivateKey = aws.String(v.(string))
 	}
 
-	domainName, err := conn.CreateDomainName(params)
+	domainName, err := apigatewayconn.CreateDomainName(params)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Domain Name: %s", err)
 	}
@@ -123,10 +123,10 @@ func resourceAwsApiGatewayDomainNameCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDomainNameRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway Domain Name %s", d.Id())
 
-	domainName, err := conn.GetDomainName(&apigateway.GetDomainNameInput{
+	domainName, err := apigatewayconn.GetDomainName(&apigateway.GetDomainNameInput{
 		DomainName: aws.String(d.Id()),
 	})
 	if err != nil {
@@ -173,10 +173,10 @@ func resourceAwsApiGatewayDomainNameUpdateOperations(d *schema.ResourceData) []*
 }
 
 func resourceAwsApiGatewayDomainNameUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Updating API Gateway Domain Name %s", d.Id())
 
-	_, err := conn.UpdateDomainName(&apigateway.UpdateDomainNameInput{
+	_, err := apigatewayconn.UpdateDomainName(&apigateway.UpdateDomainNameInput{
 		DomainName:      aws.String(d.Id()),
 		PatchOperations: resourceAwsApiGatewayDomainNameUpdateOperations(d),
 	})
@@ -189,11 +189,11 @@ func resourceAwsApiGatewayDomainNameUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayDomainNameDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Domain Name: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteDomainName(&apigateway.DeleteDomainNameInput{
+		_, err := apigatewayconn.DeleteDomainName(&apigateway.DeleteDomainNameInput{
 			DomainName: aws.String(d.Id()),
 		})
 

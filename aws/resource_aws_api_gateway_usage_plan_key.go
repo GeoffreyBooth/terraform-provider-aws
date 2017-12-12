@@ -51,7 +51,7 @@ func resourceAwsApiGatewayUsagePlanKey() *schema.Resource {
 }
 
 func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Print("[DEBUG] Creating API Gateway Usage Plan Key")
 
 	params := &apigateway.CreateUsagePlanKeyInput{
@@ -60,7 +60,7 @@ func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interf
 		UsagePlanId: aws.String(d.Get("usage_plan_id").(string)),
 	}
 
-	up, err := conn.CreateUsagePlanKey(params)
+	up, err := apigatewayconn.CreateUsagePlanKey(params)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Usage Plan Key: %s", err)
 	}
@@ -71,10 +71,10 @@ func resourceAwsApiGatewayUsagePlanKeyCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayUsagePlanKeyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway Usage Plan Key: %s", d.Id())
 
-	up, err := conn.GetUsagePlanKey(&apigateway.GetUsagePlanKeyInput{
+	up, err := apigatewayconn.GetUsagePlanKey(&apigateway.GetUsagePlanKeyInput{
 		UsagePlanId: aws.String(d.Get("usage_plan_id").(string)),
 		KeyId:       aws.String(d.Get("key_id").(string)),
 	})
@@ -94,12 +94,12 @@ func resourceAwsApiGatewayUsagePlanKeyRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceAwsApiGatewayUsagePlanKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Deleting API Gateway Usage Plan Key: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteUsagePlanKey(&apigateway.DeleteUsagePlanKeyInput{
+		_, err := apigatewayconn.DeleteUsagePlanKey(&apigateway.DeleteUsagePlanKeyInput{
 			UsagePlanId: aws.String(d.Get("usage_plan_id").(string)),
 			KeyId:       aws.String(d.Get("key_id").(string)),
 		})

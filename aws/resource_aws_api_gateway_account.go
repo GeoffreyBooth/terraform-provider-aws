@@ -48,10 +48,10 @@ func resourceAwsApiGatewayAccount() *schema.Resource {
 }
 
 func resourceAwsApiGatewayAccountRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[INFO] Reading API Gateway Account %s", d.Id())
-	account, err := conn.GetAccount(&apigateway.GetAccountInput{})
+	account, err := apigatewayconn.GetAccount(&apigateway.GetAccountInput{})
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func resourceAwsApiGatewayAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAwsApiGatewayAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.UpdateAccountInput{}
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -98,7 +98,7 @@ func resourceAwsApiGatewayAccountUpdate(d *schema.ResourceData, meta interface{}
 	var out *apigateway.Account
 	var err error
 	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		out, err = conn.UpdateAccount(&input)
+		out, err = apigatewayconn.UpdateAccount(&input)
 
 		if err != nil {
 			if isAWSErr(err, "BadRequestException", expectedErrMsg) ||

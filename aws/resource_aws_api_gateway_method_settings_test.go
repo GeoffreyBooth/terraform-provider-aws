@@ -92,13 +92,13 @@ func testAccCheckAWSAPIGatewayMethodSettingsExists(n string, res *apigateway.Sta
 			return fmt.Errorf("No API Gateway Stage ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetStageInput{
 			StageName: aws.String(s.RootModule().Resources["aws_api_gateway_deployment.test"].Primary.Attributes["stage_name"]),
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		out, err := conn.GetStage(req)
+		out, err := apigatewayconn.GetStage(req)
 		if err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ func testAccCheckAWSAPIGatewayMethodSettingsExists(n string, res *apigateway.Sta
 }
 
 func testAccCheckAWSAPIGatewayMethodSettingsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_method_settings" {
@@ -121,7 +121,7 @@ func testAccCheckAWSAPIGatewayMethodSettingsDestroy(s *terraform.State) error {
 			StageName: aws.String(s.RootModule().Resources["aws_api_gateway_deployment.test"].Primary.Attributes["stage_name"]),
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		out, err := conn.GetStage(req)
+		out, err := apigatewayconn.GetStage(req)
 		if err == nil {
 			return fmt.Errorf("API Gateway Stage still exists: %s", out)
 		}

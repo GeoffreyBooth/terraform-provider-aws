@@ -83,10 +83,10 @@ func resourceAwsApiGatewayApiKey() *schema.Resource {
 }
 
 func resourceAwsApiGatewayApiKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Creating API Gateway API Key")
 
-	apiKey, err := conn.CreateApiKey(&apigateway.CreateApiKeyInput{
+	apiKey, err := apigatewayconn.CreateApiKey(&apigateway.CreateApiKeyInput{
 		Name:        aws.String(d.Get("name").(string)),
 		Description: aws.String(d.Get("description").(string)),
 		Enabled:     aws.Bool(d.Get("enabled").(bool)),
@@ -103,10 +103,10 @@ func resourceAwsApiGatewayApiKeyCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsApiGatewayApiKeyRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Reading API Gateway API Key: %s", d.Id())
 
-	apiKey, err := conn.GetApiKey(&apigateway.GetApiKeyInput{
+	apiKey, err := apigatewayconn.GetApiKey(&apigateway.GetApiKeyInput{
 		ApiKey:       aws.String(d.Id()),
 		IncludeValue: aws.Bool(true),
 	})
@@ -166,11 +166,11 @@ func resourceAwsApiGatewayApiKeyUpdateOperations(d *schema.ResourceData) []*apig
 }
 
 func resourceAwsApiGatewayApiKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Updating API Gateway API Key: %s", d.Id())
 
-	_, err := conn.UpdateApiKey(&apigateway.UpdateApiKeyInput{
+	_, err := apigatewayconn.UpdateApiKey(&apigateway.UpdateApiKeyInput{
 		ApiKey:          aws.String(d.Id()),
 		PatchOperations: resourceAwsApiGatewayApiKeyUpdateOperations(d),
 	})
@@ -182,11 +182,11 @@ func resourceAwsApiGatewayApiKeyUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsApiGatewayApiKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway API Key: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteApiKey(&apigateway.DeleteApiKeyInput{
+		_, err := apigatewayconn.DeleteApiKey(&apigateway.DeleteApiKeyInput{
 			ApiKey: aws.String(d.Id()),
 		})
 

@@ -80,7 +80,7 @@ func resourceAwsApiGatewayIntegrationResponse() *schema.Resource {
 }
 
 func resourceAwsApiGatewayIntegrationResponseCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	templates := make(map[string]string)
 	for k, v := range d.Get("response_templates").(map[string]interface{}) {
@@ -116,7 +116,7 @@ func resourceAwsApiGatewayIntegrationResponseCreate(d *schema.ResourceData, meta
 		input.SelectionPattern = aws.String(v.(string))
 	}
 
-	_, err := conn.PutIntegrationResponse(&input)
+	_, err := apigatewayconn.PutIntegrationResponse(&input)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Integration Response: %s", err)
 	}
@@ -128,10 +128,10 @@ func resourceAwsApiGatewayIntegrationResponseCreate(d *schema.ResourceData, meta
 }
 
 func resourceAwsApiGatewayIntegrationResponseRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Integration Response %s", d.Id())
-	integrationResponse, err := conn.GetIntegrationResponse(&apigateway.GetIntegrationResponseInput{
+	integrationResponse, err := apigatewayconn.GetIntegrationResponse(&apigateway.GetIntegrationResponseInput{
 		HttpMethod: aws.String(d.Get("http_method").(string)),
 		ResourceId: aws.String(d.Get("resource_id").(string)),
 		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
@@ -157,11 +157,11 @@ func resourceAwsApiGatewayIntegrationResponseRead(d *schema.ResourceData, meta i
 }
 
 func resourceAwsApiGatewayIntegrationResponseDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Integration Response: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteIntegrationResponse(&apigateway.DeleteIntegrationResponseInput{
+		_, err := apigatewayconn.DeleteIntegrationResponse(&apigateway.DeleteIntegrationResponseInput{
 			HttpMethod: aws.String(d.Get("http_method").(string)),
 			ResourceId: aws.String(d.Get("resource_id").(string)),
 			RestApiId:  aws.String(d.Get("rest_api_id").(string)),

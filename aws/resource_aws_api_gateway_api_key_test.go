@@ -64,12 +64,12 @@ func testAccCheckAWSAPIGatewayApiKeyExists(n string, res *apigateway.ApiKey) res
 			return fmt.Errorf("No API Gateway ApiKey ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetApiKeyInput{
 			ApiKey: aws.String(rs.Primary.ID),
 		}
-		describe, err := conn.GetApiKey(req)
+		describe, err := apigatewayconn.GetApiKey(req)
 		if err != nil {
 			return err
 		}
@@ -85,14 +85,14 @@ func testAccCheckAWSAPIGatewayApiKeyExists(n string, res *apigateway.ApiKey) res
 }
 
 func testAccCheckAWSAPIGatewayApiKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_api_key" {
 			continue
 		}
 
-		describe, err := conn.GetApiKeys(&apigateway.GetApiKeysInput{})
+		describe, err := apigatewayconn.GetApiKeys(&apigateway.GetApiKeysInput{})
 
 		if err == nil {
 			if len(describe.Items) != 0 &&

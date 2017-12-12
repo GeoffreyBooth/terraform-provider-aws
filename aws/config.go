@@ -99,6 +99,7 @@ type Config struct {
 	AllowedAccountIds   []interface{}
 	ForbiddenAccountIds []interface{}
 
+	ApiGatewayEndpoint       string
 	CloudFormationEndpoint   string
 	CloudWatchEndpoint       string
 	CloudWatchEventsEndpoint string
@@ -148,7 +149,7 @@ type AWSClient struct {
 	emrconn               *emr.EMR
 	esconn                *elasticsearch.ElasticsearchService
 	acmconn               *acm.ACM
-	apigateway            *apigateway.APIGateway
+	apigatewayconn        *apigateway.APIGateway
 	appautoscalingconn    *applicationautoscaling.ApplicationAutoScaling
 	autoscalingconn       *autoscaling.AutoScaling
 	s3conn                *s3.S3
@@ -317,6 +318,7 @@ func (c *Config) Client() (interface{}, error) {
 	r53Sess := sess.Copy(&aws.Config{Region: aws.String("us-east-1")})
 
 	// Some services have user-configurable endpoints
+	awsApiGatewaySess := sess.Copy(&aws.Config{Endpoint: aws.String(c.ApiGatewayEndpoint)})
 	awsCfSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.CloudFormationEndpoint)})
 	awsCwSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.CloudWatchEndpoint)})
 	awsCweSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.CloudWatchEventsEndpoint)})
@@ -375,7 +377,7 @@ func (c *Config) Client() (interface{}, error) {
 	}
 
 	client.acmconn = acm.New(sess)
-	client.apigateway = apigateway.New(sess)
+	client.apigatewayconn = apigateway.New(awsApiGatewaySess)
 	client.appautoscalingconn = applicationautoscaling.New(sess)
 	client.autoscalingconn = autoscaling.New(sess)
 	client.cfconn = cloudformation.New(awsCfSess)

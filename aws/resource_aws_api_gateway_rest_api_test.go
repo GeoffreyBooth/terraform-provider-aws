@@ -104,9 +104,9 @@ func testAccCheckAWSAPIGatewayRestAPIDescriptionAttribute(conf *apigateway.RestA
 
 func testAccCheckAWSAPIGatewayRestAPIRoutes(conf *apigateway.RestApi, routes []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
-		resp, err := conn.GetResources(&apigateway.GetResourcesInput{
+		resp, err := apigatewayconn.GetResources(&apigateway.GetResourcesInput{
 			RestApiId: conf.Id,
 		})
 		if err != nil {
@@ -144,12 +144,12 @@ func testAccCheckAWSAPIGatewayRestAPIExists(n string, res *apigateway.RestApi) r
 			return fmt.Errorf("No API Gateway ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetRestApiInput{
 			RestApiId: aws.String(rs.Primary.ID),
 		}
-		describe, err := conn.GetRestApi(req)
+		describe, err := apigatewayconn.GetRestApi(req)
 		if err != nil {
 			return err
 		}
@@ -165,7 +165,7 @@ func testAccCheckAWSAPIGatewayRestAPIExists(n string, res *apigateway.RestApi) r
 }
 
 func testAccCheckAWSAPIGatewayRestAPIDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_rest_api" {
@@ -173,7 +173,7 @@ func testAccCheckAWSAPIGatewayRestAPIDestroy(s *terraform.State) error {
 		}
 
 		req := &apigateway.GetRestApisInput{}
-		describe, err := conn.GetRestApis(req)
+		describe, err := apigatewayconn.GetRestApis(req)
 
 		if err == nil {
 			if len(describe.Items) != 0 &&

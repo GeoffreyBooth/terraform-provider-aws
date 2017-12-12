@@ -63,12 +63,12 @@ func testAccCheckAWSAPIGatewayDomainNameExists(n string, res *apigateway.DomainN
 			return fmt.Errorf("No API Gateway DomainName ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetDomainNameInput{
 			DomainName: aws.String(rs.Primary.ID),
 		}
-		describe, err := conn.GetDomainName(req)
+		describe, err := apigatewayconn.GetDomainName(req)
 		if err != nil {
 			return err
 		}
@@ -84,14 +84,14 @@ func testAccCheckAWSAPIGatewayDomainNameExists(n string, res *apigateway.DomainN
 }
 
 func testAccCheckAWSAPIGatewayDomainNameDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_api_key" {
 			continue
 		}
 
-		describe, err := conn.GetDomainNames(&apigateway.GetDomainNamesInput{})
+		describe, err := apigatewayconn.GetDomainNames(&apigateway.GetDomainNamesInput{})
 
 		if err == nil {
 			if len(describe.Items) != 0 &&

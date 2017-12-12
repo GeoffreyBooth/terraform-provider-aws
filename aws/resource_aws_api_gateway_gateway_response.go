@@ -53,7 +53,7 @@ func resourceAwsApiGatewayGatewayResponse() *schema.Resource {
 }
 
 func resourceAwsApiGatewayGatewayResponsePut(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	templates := make(map[string]string)
 	if kv, ok := d.GetOk("response_templates"); ok {
@@ -82,7 +82,7 @@ func resourceAwsApiGatewayGatewayResponsePut(d *schema.ResourceData, meta interf
 
 	log.Printf("[DEBUG] Putting API Gateway Gateway Response: %s", input)
 
-	_, err := conn.PutGatewayResponse(&input)
+	_, err := apigatewayconn.PutGatewayResponse(&input)
 	if err != nil {
 		return fmt.Errorf("Error putting API Gateway Gateway Response: %s", err)
 	}
@@ -94,10 +94,10 @@ func resourceAwsApiGatewayGatewayResponsePut(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayGatewayResponseRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Gateway Response %s", d.Id())
-	gatewayResponse, err := conn.GetGatewayResponse(&apigateway.GetGatewayResponseInput{
+	gatewayResponse, err := apigatewayconn.GetGatewayResponse(&apigateway.GetGatewayResponseInput{
 		RestApiId:    aws.String(d.Get("rest_api_id").(string)),
 		ResponseType: aws.String(d.Get("response_type").(string)),
 	})
@@ -121,11 +121,11 @@ func resourceAwsApiGatewayGatewayResponseRead(d *schema.ResourceData, meta inter
 }
 
 func resourceAwsApiGatewayGatewayResponseDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Gateway Response: %s", d.Id())
 
 	return resource.Retry(1*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteGatewayResponse(&apigateway.DeleteGatewayResponseInput{
+		_, err := apigatewayconn.DeleteGatewayResponse(&apigateway.DeleteGatewayResponseInput{
 			RestApiId:    aws.String(d.Get("rest_api_id").(string)),
 			ResponseType: aws.String(d.Get("response_type").(string)),
 		})

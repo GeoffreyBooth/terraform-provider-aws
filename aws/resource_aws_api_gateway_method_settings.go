@@ -87,14 +87,14 @@ func resourceAwsApiGatewayMethodSettings() *schema.Resource {
 }
 
 func resourceAwsApiGatewayMethodSettingsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Method Settings %s", d.Id())
 	input := apigateway.GetStageInput{
 		RestApiId: aws.String(d.Get("rest_api_id").(string)),
 		StageName: aws.String(d.Get("stage_name").(string)),
 	}
-	stage, err := conn.GetStage(&input)
+	stage, err := apigatewayconn.GetStage(&input)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NotFoundException" {
 			log.Printf("[WARN] API Gateway Stage (%s) not found, removing method settings", d.Id())
@@ -128,7 +128,7 @@ func resourceAwsApiGatewayMethodSettingsRead(d *schema.ResourceData, meta interf
 }
 
 func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	methodPath := d.Get("method_path").(string)
 	prefix := fmt.Sprintf("/%s/", methodPath)
@@ -214,7 +214,7 @@ func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta inte
 		PatchOperations: ops,
 	}
 	log.Printf("[DEBUG] Updating API Gateway Stage: %s", input)
-	_, err := conn.UpdateStage(&input)
+	_, err := apigatewayconn.UpdateStage(&input)
 	if err != nil {
 		return fmt.Errorf("Updating API Gateway Stage failed: %s", err)
 	}
@@ -225,7 +225,7 @@ func resourceAwsApiGatewayMethodSettingsUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceAwsApiGatewayMethodSettingsDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Method Settings: %s", d.Id())
 
 	input := apigateway.UpdateStageInput{
@@ -239,7 +239,7 @@ func resourceAwsApiGatewayMethodSettingsDelete(d *schema.ResourceData, meta inte
 		},
 	}
 	log.Printf("[DEBUG] Updating API Gateway Stage: %s", input)
-	_, err := conn.UpdateStage(&input)
+	_, err := apigatewayconn.UpdateStage(&input)
 	if err != nil {
 		return fmt.Errorf("Updating API Gateway Stage failed: %s", err)
 	}

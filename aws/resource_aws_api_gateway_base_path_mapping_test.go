@@ -65,13 +65,13 @@ func testAccCheckAWSAPIGatewayBasePathExists(n string, name string, res *apigate
 			return fmt.Errorf("No API Gateway ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetBasePathMappingInput{
 			DomainName: aws.String(name),
 			BasePath:   aws.String("tf-acc"),
 		}
-		describe, err := conn.GetBasePathMapping(req)
+		describe, err := apigatewayconn.GetBasePathMapping(req)
 		if err != nil {
 			return err
 		}
@@ -97,13 +97,13 @@ func testAccCheckAWSAPIGatewayEmptyBasePathExists(n string, name string, res *ap
 			return fmt.Errorf("No API Gateway ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetBasePathMappingInput{
 			DomainName: aws.String(name),
 			BasePath:   aws.String(""),
 		}
-		describe, err := conn.GetBasePathMapping(req)
+		describe, err := apigatewayconn.GetBasePathMapping(req)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func testAccCheckAWSAPIGatewayEmptyBasePathExists(n string, name string, res *ap
 
 func testAccCheckAWSAPIGatewayBasePathDestroy(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "aws_api_gateway_rest_api" {
@@ -126,7 +126,7 @@ func testAccCheckAWSAPIGatewayBasePathDestroy(name string) resource.TestCheckFun
 			req := &apigateway.GetBasePathMappingsInput{
 				DomainName: aws.String(name),
 			}
-			_, err := conn.GetBasePathMappings(req)
+			_, err := apigatewayconn.GetBasePathMappings(req)
 
 			if err != nil {
 				if err, ok := err.(awserr.Error); ok && err.Code() == "NotFoundException" {

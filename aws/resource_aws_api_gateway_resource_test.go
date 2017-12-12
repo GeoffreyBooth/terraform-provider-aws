@@ -90,13 +90,13 @@ func testAccCheckAWSAPIGatewayResourceExists(n string, res *apigateway.Resource)
 			return fmt.Errorf("No API Gateway Resource ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetResourceInput{
 			ResourceId: aws.String(rs.Primary.ID),
 			RestApiId:  aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		describe, err := conn.GetResource(req)
+		describe, err := apigatewayconn.GetResource(req)
 		if err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func testAccCheckAWSAPIGatewayResourceExists(n string, res *apigateway.Resource)
 }
 
 func testAccCheckAWSAPIGatewayResourceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_resource" {
@@ -122,7 +122,7 @@ func testAccCheckAWSAPIGatewayResourceDestroy(s *terraform.State) error {
 		req := &apigateway.GetResourcesInput{
 			RestApiId: aws.String(s.RootModule().Resources["aws_api_gateway_rest_api.test"].Primary.ID),
 		}
-		describe, err := conn.GetResources(req)
+		describe, err := apigatewayconn.GetResources(req)
 
 		if err == nil {
 			if len(describe.Items) != 0 &&

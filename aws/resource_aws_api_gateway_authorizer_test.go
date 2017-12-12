@@ -179,13 +179,13 @@ func testAccCheckAWSAPIGatewayAuthorizerExists(n string, res *apigateway.Authori
 			return fmt.Errorf("No API Gateway Authorizer ID is set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).apigateway
+		apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 		req := &apigateway.GetAuthorizerInput{
 			AuthorizerId: aws.String(rs.Primary.ID),
 			RestApiId:    aws.String(rs.Primary.Attributes["rest_api_id"]),
 		}
-		describe, err := conn.GetAuthorizer(req)
+		describe, err := apigatewayconn.GetAuthorizer(req)
 		if err != nil {
 			return err
 		}
@@ -197,7 +197,7 @@ func testAccCheckAWSAPIGatewayAuthorizerExists(n string, res *apigateway.Authori
 }
 
 func testAccCheckAWSAPIGatewayAuthorizerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).apigateway
+	apigatewayconn := testAccProvider.Meta().(*AWSClient).apigatewayconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_api_gateway_authorizer" {
@@ -208,7 +208,7 @@ func testAccCheckAWSAPIGatewayAuthorizerDestroy(s *terraform.State) error {
 			AuthorizerId: aws.String(rs.Primary.ID),
 			RestApiId:    aws.String(rs.Primary.Attributes["rest_api_id"]),
 		}
-		_, err := conn.GetAuthorizer(req)
+		_, err := apigatewayconn.GetAuthorizer(req)
 
 		if err == nil {
 			return fmt.Errorf("API Gateway Authorizer still exists")

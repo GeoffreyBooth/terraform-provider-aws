@@ -119,7 +119,7 @@ func resourceAwsApiGatewayIntegration() *schema.Resource {
 }
 
 func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Print("[DEBUG] Creating API Gateway Integration")
 	var integrationHttpMethod *string
@@ -177,7 +177,7 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 		cacheNamespace = aws.String(v.(string))
 	}
 
-	_, err := conn.PutIntegration(&apigateway.PutIntegrationInput{
+	_, err := apigatewayconn.PutIntegration(&apigateway.PutIntegrationInput{
 		HttpMethod: aws.String(d.Get("http_method").(string)),
 		ResourceId: aws.String(d.Get("resource_id").(string)),
 		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
@@ -202,10 +202,10 @@ func resourceAwsApiGatewayIntegrationCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceAwsApiGatewayIntegrationRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Integration: %s", d.Id())
-	integration, err := conn.GetIntegration(&apigateway.GetIntegrationInput{
+	integration, err := apigatewayconn.GetIntegration(&apigateway.GetIntegrationInput{
 		HttpMethod: aws.String(d.Get("http_method").(string)),
 		ResourceId: aws.String(d.Get("resource_id").(string)),
 		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
@@ -254,7 +254,7 @@ func resourceAwsApiGatewayIntegrationRead(d *schema.ResourceData, meta interface
 }
 
 func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Updating API Gateway Integration: %s", d.Id())
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -377,7 +377,7 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 		PatchOperations: operations,
 	}
 
-	_, err := conn.UpdateIntegration(params)
+	_, err := apigatewayconn.UpdateIntegration(params)
 	if err != nil {
 		return fmt.Errorf("Error updating API Gateway Integration: %s", err)
 	}
@@ -388,11 +388,11 @@ func resourceAwsApiGatewayIntegrationUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceAwsApiGatewayIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Integration: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteIntegration(&apigateway.DeleteIntegrationInput{
+		_, err := apigatewayconn.DeleteIntegration(&apigateway.DeleteIntegrationInput{
 			HttpMethod: aws.String(d.Get("http_method").(string)),
 			ResourceId: aws.String(d.Get("resource_id").(string)),
 			RestApiId:  aws.String(d.Get("rest_api_id").(string)),

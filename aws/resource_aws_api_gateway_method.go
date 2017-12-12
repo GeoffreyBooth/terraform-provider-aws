@@ -86,7 +86,7 @@ func resourceAwsApiGatewayMethod() *schema.Resource {
 }
 
 func resourceAwsApiGatewayMethodCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	input := apigateway.PutMethodInput{
 		AuthorizationType: aws.String(d.Get("authorization").(string)),
@@ -130,7 +130,7 @@ func resourceAwsApiGatewayMethodCreate(d *schema.ResourceData, meta interface{})
 		input.RequestValidatorId = aws.String(v.(string))
 	}
 
-	_, err := conn.PutMethod(&input)
+	_, err := apigatewayconn.PutMethod(&input)
 	if err != nil {
 		return fmt.Errorf("Error creating API Gateway Method: %s", err)
 	}
@@ -142,10 +142,10 @@ func resourceAwsApiGatewayMethodCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsApiGatewayMethodRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Method %s", d.Id())
-	out, err := conn.GetMethod(&apigateway.GetMethodInput{
+	out, err := apigatewayconn.GetMethod(&apigateway.GetMethodInput{
 		HttpMethod: aws.String(d.Get("http_method").(string)),
 		ResourceId: aws.String(d.Get("resource_id").(string)),
 		RestApiId:  aws.String(d.Get("rest_api_id").(string)),
@@ -172,7 +172,7 @@ func resourceAwsApiGatewayMethodRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsApiGatewayMethodUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	log.Printf("[DEBUG] Reading API Gateway Method %s", d.Id())
 	operations := make([]*apigateway.PatchOperation, 0)
@@ -253,7 +253,7 @@ func resourceAwsApiGatewayMethodUpdate(d *schema.ResourceData, meta interface{})
 		})
 	}
 
-	method, err := conn.UpdateMethod(&apigateway.UpdateMethodInput{
+	method, err := apigatewayconn.UpdateMethod(&apigateway.UpdateMethodInput{
 		HttpMethod:      aws.String(d.Get("http_method").(string)),
 		ResourceId:      aws.String(d.Get("resource_id").(string)),
 		RestApiId:       aws.String(d.Get("rest_api_id").(string)),
@@ -270,11 +270,11 @@ func resourceAwsApiGatewayMethodUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsApiGatewayMethodDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 	log.Printf("[DEBUG] Deleting API Gateway Method: %s", d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.DeleteMethod(&apigateway.DeleteMethodInput{
+		_, err := apigatewayconn.DeleteMethod(&apigateway.DeleteMethodInput{
 			HttpMethod: aws.String(d.Get("http_method").(string)),
 			ResourceId: aws.String(d.Get("resource_id").(string)),
 			RestApiId:  aws.String(d.Get("rest_api_id").(string)),

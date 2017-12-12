@@ -46,10 +46,10 @@ func resourceAwsApiGatewayBasePathMapping() *schema.Resource {
 }
 
 func resourceAwsApiGatewayBasePathMappingCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	err := resource.Retry(30*time.Second, func() *resource.RetryError {
-		_, err := conn.CreateBasePathMapping(&apigateway.CreateBasePathMappingInput{
+		_, err := apigatewayconn.CreateBasePathMapping(&apigateway.CreateBasePathMappingInput{
 			RestApiId:  aws.String(d.Get("api_id").(string)),
 			DomainName: aws.String(d.Get("domain_name").(string)),
 			BasePath:   aws.String(d.Get("base_path").(string)),
@@ -80,7 +80,7 @@ func resourceAwsApiGatewayBasePathMappingCreate(d *schema.ResourceData, meta int
 }
 
 func resourceAwsApiGatewayBasePathMappingRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	domainName := d.Get("domain_name").(string)
 	basePath := d.Get("base_path").(string)
@@ -93,7 +93,7 @@ func resourceAwsApiGatewayBasePathMappingRead(d *schema.ResourceData, meta inter
 		basePath = emptyBasePathMappingValue
 	}
 
-	mapping, err := conn.GetBasePathMapping(&apigateway.GetBasePathMappingInput{
+	mapping, err := apigatewayconn.GetBasePathMapping(&apigateway.GetBasePathMappingInput{
 		DomainName: aws.String(domainName),
 		BasePath:   aws.String(basePath),
 	})
@@ -121,7 +121,7 @@ func resourceAwsApiGatewayBasePathMappingRead(d *schema.ResourceData, meta inter
 }
 
 func resourceAwsApiGatewayBasePathMappingDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).apigateway
+	apigatewayconn := meta.(*AWSClient).apigatewayconn
 
 	basePath := d.Get("base_path").(string)
 
@@ -129,7 +129,7 @@ func resourceAwsApiGatewayBasePathMappingDelete(d *schema.ResourceData, meta int
 		basePath = emptyBasePathMappingValue
 	}
 
-	_, err := conn.DeleteBasePathMapping(&apigateway.DeleteBasePathMappingInput{
+	_, err := apigatewayconn.DeleteBasePathMapping(&apigateway.DeleteBasePathMappingInput{
 		DomainName: aws.String(d.Get("domain_name").(string)),
 		BasePath:   aws.String(basePath),
 	})
