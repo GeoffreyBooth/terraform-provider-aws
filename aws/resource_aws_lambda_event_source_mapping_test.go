@@ -99,13 +99,13 @@ func TestAccAWSLambdaEventSourceMapping_disappears(t *testing.T) {
 
 func testAccCheckAWSLambdaEventSourceMappingDisappears(conf *lambda.EventSourceMappingConfiguration) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		params := &lambda.DeleteEventSourceMappingInput{
 			UUID: conf.UUID,
 		}
 
-		_, err := conn.DeleteEventSourceMapping(params)
+		_, err := lambdaconn.DeleteEventSourceMapping(params)
 		if err != nil {
 			if err != nil {
 				return err
@@ -116,7 +116,7 @@ func testAccCheckAWSLambdaEventSourceMappingDisappears(conf *lambda.EventSourceM
 			params := &lambda.GetEventSourceMappingInput{
 				UUID: conf.UUID,
 			}
-			_, err := conn.GetEventSourceMapping(params)
+			_, err := lambdaconn.GetEventSourceMapping(params)
 			if err != nil {
 				cgw, ok := err.(awserr.Error)
 				if ok && cgw.Code() == "ResourceNotFoundException" {
@@ -132,14 +132,14 @@ func testAccCheckAWSLambdaEventSourceMappingDisappears(conf *lambda.EventSourceM
 }
 
 func testAccCheckLambdaEventSourceMappingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+	lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lambda_event_source_mapping" {
 			continue
 		}
 
-		_, err := conn.GetEventSourceMapping(&lambda.GetEventSourceMappingInput{
+		_, err := lambdaconn.GetEventSourceMapping(&lambda.GetEventSourceMappingInput{
 			UUID: aws.String(rs.Primary.ID),
 		})
 
@@ -165,13 +165,13 @@ func testAccCheckAwsLambdaEventSourceMappingExists(n string, mapping *lambda.Eve
 			return fmt.Errorf("Lambda event source mapping ID not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		params := &lambda.GetEventSourceMappingInput{
 			UUID: aws.String(rs.Primary.ID),
 		}
 
-		getSourceMappingConfiguration, err := conn.GetEventSourceMapping(params)
+		getSourceMappingConfiguration, err := lambdaconn.GetEventSourceMapping(params)
 		if err != nil {
 			return err
 		}

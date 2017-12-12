@@ -34,14 +34,14 @@ func TestAccAWSLambdaAlias_basic(t *testing.T) {
 }
 
 func testAccCheckAwsLambdaAliasDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+	lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lambda_alias" {
 			continue
 		}
 
-		_, err := conn.GetAlias(&lambda.GetAliasInput{
+		_, err := lambdaconn.GetAlias(&lambda.GetAliasInput{
 			FunctionName: aws.String(rs.Primary.ID),
 		})
 
@@ -65,14 +65,14 @@ func testAccCheckAwsLambdaAliasExists(n string, mapping *lambda.AliasConfigurati
 			return fmt.Errorf("Lambda alias not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		params := &lambda.GetAliasInput{
 			FunctionName: aws.String(rs.Primary.ID),
 			Name:         aws.String("testalias"),
 		}
 
-		getAliasConfiguration, err := conn.GetAlias(params)
+		getAliasConfiguration, err := lambdaconn.GetAlias(params)
 		if err != nil {
 			return err
 		}

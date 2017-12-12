@@ -206,7 +206,7 @@ func resourceAwsLambdaFunction() *schema.Resource {
 // resourceAwsLambdaFunction maps to:
 // CreateFunction in the API / SDK
 func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	functionName := d.Get("function_name").(string)
 	reservedConcurrentExecutions := d.Get("reserved_concurrent_executions").(int)
@@ -339,7 +339,7 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 	// http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#launch-instance-with-role-console
 	// Error creating Lambda function: InvalidParameterValueException: The role defined for the task cannot be assumed by Lambda.
 	err := resource.Retry(10*time.Minute, func() *resource.RetryError {
-		_, err := conn.CreateFunction(params)
+		_, err := lambdaconn.CreateFunction(params)
 		if err != nil {
 			log.Printf("[DEBUG] Error creating Lambda Function: %s", err)
 
@@ -369,7 +369,7 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 			ReservedConcurrentExecutions: aws.Int64(int64(reservedConcurrentExecutions)),
 		}
 
-		_, err := conn.PutFunctionConcurrency(concurrencyParams)
+		_, err := lambdaconn.PutFunctionConcurrency(concurrencyParams)
 		if err != nil {
 			return fmt.Errorf("Error setting concurrency for Lambda %s: %s", functionName, err)
 		}
@@ -383,7 +383,7 @@ func resourceAwsLambdaFunctionCreate(d *schema.ResourceData, meta interface{}) e
 // resourceAwsLambdaFunctionRead maps to:
 // GetFunction in the API / SDK
 func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[DEBUG] Fetching Lambda Function: %s", d.Id())
 
@@ -391,7 +391,7 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 		FunctionName: aws.String(d.Get("function_name").(string)),
 	}
 
-	getFunctionOutput, err := conn.GetFunction(params)
+	getFunctionOutput, err := lambdaconn.GetFunction(params)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceNotFoundException" && !d.IsNewResource() {
 			d.SetId("")
@@ -452,7 +452,7 @@ func resourceAwsLambdaFunctionRead(d *schema.ResourceData, meta interface{}) err
 	// List is sorted from oldest to latest
 	// so this may get costly over time :'(
 	var lastVersion, lastQualifiedArn string
-	err = listVersionsByFunctionPages(conn, &lambda.ListVersionsByFunctionInput{
+	err = listVersionsByFunctionPages(lambdaconn, &lambda.ListVersionsByFunctionInput{
 		FunctionName: function.FunctionName,
 		MaxItems:     aws.Int64(10000),
 	}, func(p *lambda.ListVersionsByFunctionOutput, lastPage bool) bool {
@@ -503,7 +503,7 @@ func listVersionsByFunctionPages(c *lambda.Lambda, input *lambda.ListVersionsByF
 // resourceAwsLambdaFunction maps to:
 // DeleteFunction in the API / SDK
 func resourceAwsLambdaFunctionDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[INFO] Deleting Lambda Function: %s", d.Id())
 
@@ -511,7 +511,7 @@ func resourceAwsLambdaFunctionDelete(d *schema.ResourceData, meta interface{}) e
 		FunctionName: aws.String(d.Get("function_name").(string)),
 	}
 
-	_, err := conn.DeleteFunction(params)
+	_, err := lambdaconn.DeleteFunction(params)
 	if err != nil {
 		return fmt.Errorf("Error deleting Lambda Function: %s", err)
 	}
@@ -524,12 +524,12 @@ func resourceAwsLambdaFunctionDelete(d *schema.ResourceData, meta interface{}) e
 // resourceAwsLambdaFunctionUpdate maps to:
 // UpdateFunctionCode in the API / SDK
 func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	d.Partial(true)
 
 	arn := d.Get("arn").(string)
-	if tagErr := setTagsLambda(conn, d, arn); tagErr != nil {
+	if tagErr := setTagsLambda(lambdaconn, d, arn); tagErr != nil {
 		return tagErr
 	}
 	d.SetPartial("tags")
@@ -639,7 +639,7 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if configUpdate {
 		log.Printf("[DEBUG] Send Update Lambda Function Configuration request: %#v", configReq)
-		_, err := conn.UpdateFunctionConfiguration(configReq)
+		_, err := lambdaconn.UpdateFunctionConfiguration(configReq)
 		if err != nil {
 			return fmt.Errorf("Error modifying Lambda Function Configuration %s: %s", d.Id(), err)
 		}
@@ -681,7 +681,7 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 
 		log.Printf("[DEBUG] Send Update Lambda Function Code request: %#v", codeReq)
 
-		_, err := conn.UpdateFunctionCode(codeReq)
+		_, err := lambdaconn.UpdateFunctionCode(codeReq)
 		if err != nil {
 			return fmt.Errorf("Error modifying Lambda Function Code %s: %s", d.Id(), err)
 		}
@@ -704,7 +704,7 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 				ReservedConcurrentExecutions: aws.Int64(int64(d.Get("reserved_concurrent_executions").(int))),
 			}
 
-			_, err := conn.PutFunctionConcurrency(concurrencyParams)
+			_, err := lambdaconn.PutFunctionConcurrency(concurrencyParams)
 			if err != nil {
 				return fmt.Errorf("Error setting concurrency for Lambda %s: %s", d.Id(), err)
 			}
@@ -714,7 +714,7 @@ func resourceAwsLambdaFunctionUpdate(d *schema.ResourceData, meta interface{}) e
 			deleteConcurrencyParams := &lambda.DeleteFunctionConcurrencyInput{
 				FunctionName: aws.String(d.Id()),
 			}
-			_, err := conn.DeleteFunctionConcurrency(deleteConcurrencyParams)
+			_, err := lambdaconn.DeleteFunctionConcurrency(deleteConcurrencyParams)
 			if err != nil {
 				return fmt.Errorf("Error setting concurrency for Lambda %s: %s", d.Id(), err)
 			}

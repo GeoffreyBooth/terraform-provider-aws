@@ -46,7 +46,7 @@ func resourceAwsLambdaAlias() *schema.Resource {
 // resourceAwsLambdaAliasCreate maps to:
 // CreateAlias in the API / SDK
 func resourceAwsLambdaAliasCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	functionName := d.Get("function_name").(string)
 	aliasName := d.Get("name").(string)
@@ -60,7 +60,7 @@ func resourceAwsLambdaAliasCreate(d *schema.ResourceData, meta interface{}) erro
 		Name:            aws.String(aliasName),
 	}
 
-	aliasConfiguration, err := conn.CreateAlias(params)
+	aliasConfiguration, err := lambdaconn.CreateAlias(params)
 	if err != nil {
 		return fmt.Errorf("Error creating Lambda alias: %s", err)
 	}
@@ -73,7 +73,7 @@ func resourceAwsLambdaAliasCreate(d *schema.ResourceData, meta interface{}) erro
 // resourceAwsLambdaAliasRead maps to:
 // GetAlias in the API / SDK
 func resourceAwsLambdaAliasRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[DEBUG] Fetching Lambda alias: %s:%s", d.Get("function_name"), d.Get("name"))
 
@@ -82,7 +82,7 @@ func resourceAwsLambdaAliasRead(d *schema.ResourceData, meta interface{}) error 
 		Name:         aws.String(d.Get("name").(string)),
 	}
 
-	aliasConfiguration, err := conn.GetAlias(params)
+	aliasConfiguration, err := lambdaconn.GetAlias(params)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "ResourceNotFoundException" && strings.Contains(awsErr.Message(), "Cannot find alias arn") {
@@ -104,7 +104,7 @@ func resourceAwsLambdaAliasRead(d *schema.ResourceData, meta interface{}) error 
 // resourceAwsLambdaAliasDelete maps to:
 // DeleteAlias in the API / SDK
 func resourceAwsLambdaAliasDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[INFO] Deleting Lambda alias: %s:%s", d.Get("function_name"), d.Get("name"))
 
@@ -113,7 +113,7 @@ func resourceAwsLambdaAliasDelete(d *schema.ResourceData, meta interface{}) erro
 		Name:         aws.String(d.Get("name").(string)),
 	}
 
-	_, err := conn.DeleteAlias(params)
+	_, err := lambdaconn.DeleteAlias(params)
 	if err != nil {
 		return fmt.Errorf("Error deleting Lambda alias: %s", err)
 	}
@@ -126,7 +126,7 @@ func resourceAwsLambdaAliasDelete(d *schema.ResourceData, meta interface{}) erro
 // resourceAwsLambdaAliasUpdate maps to:
 // UpdateAlias in the API / SDK
 func resourceAwsLambdaAliasUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[DEBUG] Updating Lambda alias: %s:%s", d.Get("function_name"), d.Get("name"))
 
@@ -137,7 +137,7 @@ func resourceAwsLambdaAliasUpdate(d *schema.ResourceData, meta interface{}) erro
 		Name:            aws.String(d.Get("name").(string)),
 	}
 
-	_, err := conn.UpdateAlias(params)
+	_, err := lambdaconn.UpdateAlias(params)
 	if err != nil {
 		return fmt.Errorf("Error updating Lambda alias: %s", err)
 	}

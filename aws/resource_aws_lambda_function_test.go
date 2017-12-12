@@ -874,14 +874,14 @@ func TestAccAWSLambdaFunction_runtimeValidation_python36(t *testing.T) {
 }
 
 func testAccCheckLambdaFunctionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+	lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lambda_function" {
 			continue
 		}
 
-		_, err := conn.GetFunction(&lambda.GetFunctionInput{
+		_, err := lambdaconn.GetFunction(&lambda.GetFunctionInput{
 			FunctionName: aws.String(rs.Primary.ID),
 		})
 
@@ -907,13 +907,13 @@ func testAccCheckAwsLambdaFunctionExists(res, funcName string, function *lambda.
 			return fmt.Errorf("Lambda function ID not set")
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		params := &lambda.GetFunctionInput{
 			FunctionName: aws.String(funcName),
 		}
 
-		getFunction, err := conn.GetFunction(params)
+		getFunction, err := lambdaconn.GetFunction(params)
 		if err != nil {
 			return err
 		}
@@ -927,10 +927,10 @@ func testAccCheckAwsLambdaFunctionExists(res, funcName string, function *lambda.
 func testAccAwsInvokeLambdaFunction(function *lambda.GetFunctionOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		f := function.Configuration
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		// If the function is VPC-enabled this will create ENI automatically
-		_, err := conn.Invoke(&lambda.InvokeInput{
+		_, err := lambdaconn.Invoke(&lambda.InvokeInput{
 			FunctionName: f.FunctionName,
 		})
 

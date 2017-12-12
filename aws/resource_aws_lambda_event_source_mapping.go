@@ -79,7 +79,7 @@ func resourceAwsLambdaEventSourceMapping() *schema.Resource {
 // resourceAwsLambdaEventSourceMappingCreate maps to:
 // CreateEventSourceMapping in the API / SDK
 func resourceAwsLambdaEventSourceMappingCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	functionName := d.Get("function_name").(string)
 	eventSourceArn := d.Get("event_source_arn").(string)
@@ -102,7 +102,7 @@ func resourceAwsLambdaEventSourceMappingCreate(d *schema.ResourceData, meta inte
 	// The role may exist, but the permissions may not have propagated, so we
 	// retry
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		eventSourceMappingConfiguration, err := conn.CreateEventSourceMapping(params)
+		eventSourceMappingConfiguration, err := lambdaconn.CreateEventSourceMapping(params)
 		if err != nil {
 			if awserr, ok := err.(awserr.Error); ok {
 				if awserr.Code() == "InvalidParameterValueException" {
@@ -127,7 +127,7 @@ func resourceAwsLambdaEventSourceMappingCreate(d *schema.ResourceData, meta inte
 // resourceAwsLambdaEventSourceMappingRead maps to:
 // GetEventSourceMapping in the API / SDK
 func resourceAwsLambdaEventSourceMappingRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[DEBUG] Fetching Lambda event source mapping: %s", d.Id())
 
@@ -135,7 +135,7 @@ func resourceAwsLambdaEventSourceMappingRead(d *schema.ResourceData, meta interf
 		UUID: aws.String(d.Id()),
 	}
 
-	eventSourceMappingConfiguration, err := conn.GetEventSourceMapping(params)
+	eventSourceMappingConfiguration, err := lambdaconn.GetEventSourceMapping(params)
 	if err != nil {
 		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "ResourceNotFoundException" {
 			log.Printf("[DEBUG] Lambda event source mapping (%s) not found", d.Id())
@@ -162,7 +162,7 @@ func resourceAwsLambdaEventSourceMappingRead(d *schema.ResourceData, meta interf
 // resourceAwsLambdaEventSourceMappingDelete maps to:
 // DeleteEventSourceMapping in the API / SDK
 func resourceAwsLambdaEventSourceMappingDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[INFO] Deleting Lambda event source mapping: %s", d.Id())
 
@@ -170,7 +170,7 @@ func resourceAwsLambdaEventSourceMappingDelete(d *schema.ResourceData, meta inte
 		UUID: aws.String(d.Id()),
 	}
 
-	_, err := conn.DeleteEventSourceMapping(params)
+	_, err := lambdaconn.DeleteEventSourceMapping(params)
 	if err != nil {
 		return fmt.Errorf("Error deleting Lambda event source mapping: %s", err)
 	}
@@ -183,7 +183,7 @@ func resourceAwsLambdaEventSourceMappingDelete(d *schema.ResourceData, meta inte
 // resourceAwsLambdaEventSourceMappingUpdate maps to:
 // UpdateEventSourceMapping in the API / SDK
 func resourceAwsLambdaEventSourceMappingUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	log.Printf("[DEBUG] Updating Lambda event source mapping: %s", d.Id())
 
@@ -195,7 +195,7 @@ func resourceAwsLambdaEventSourceMappingUpdate(d *schema.ResourceData, meta inte
 	}
 
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.UpdateEventSourceMapping(params)
+		_, err := lambdaconn.UpdateEventSourceMapping(params)
 		if err != nil {
 			if awserr, ok := err.(awserr.Error); ok {
 				if awserr.Code() == "InvalidParameterValueException" {

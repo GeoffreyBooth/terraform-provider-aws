@@ -70,7 +70,7 @@ func resourceAwsLambdaPermission() *schema.Resource {
 }
 
 func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	functionName := d.Get("function_name").(string)
 
@@ -101,7 +101,7 @@ func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{})
 	var out *lambda.AddPermissionOutput
 	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		var err error
-		out, err = conn.AddPermission(&input)
+		out, err = lambdaconn.AddPermission(&input)
 
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
@@ -154,7 +154,7 @@ func resourceAwsLambdaPermissionCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	input := lambda.GetPolicyInput{
 		FunctionName: aws.String(d.Get("function_name").(string)),
@@ -169,7 +169,7 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 	err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		// IAM is eventually cosistent :/
 		var err error
-		out, err = conn.GetPolicy(&input)
+		out, err = lambdaconn.GetPolicy(&input)
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
 				if awsErr.Code() == "ResourceNotFoundException" {
@@ -249,7 +249,7 @@ func resourceAwsLambdaPermissionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).lambdaconn
+	lambdaconn := meta.(*AWSClient).lambdaconn
 
 	functionName := d.Get("function_name").(string)
 
@@ -269,7 +269,7 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[DEBUG] Removing Lambda permission: %s", input)
-	_, err := conn.RemovePermission(&input)
+	_, err := lambdaconn.RemovePermission(&input)
 	if err != nil {
 		return err
 	}
@@ -285,7 +285,7 @@ func resourceAwsLambdaPermissionDelete(d *schema.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG] Looking for Lambda permission: %s", *params)
-		resp, err := conn.GetPolicy(params)
+		resp, err := lambdaconn.GetPolicy(params)
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
 				if awsErr.Code() == "ResourceNotFoundException" {

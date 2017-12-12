@@ -375,13 +375,13 @@ func testAccCheckLambdaPermissionExists(n string, statement *LambdaPolicyStateme
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+		lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 		// IAM is eventually consistent
 		var foundStatement *LambdaPolicyStatement
 		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 			var err error
-			foundStatement, err = lambdaPermissionExists(rs, conn)
+			foundStatement, err = lambdaPermissionExists(rs, lambdaconn)
 			if err != nil {
 				if strings.HasPrefix(err.Error(), "ResourceNotFoundException") {
 					return resource.RetryableError(err)
@@ -407,7 +407,7 @@ func testAccCheckLambdaPermissionExists(n string, statement *LambdaPolicyStateme
 }
 
 func testAccCheckAWSLambdaPermissionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*AWSClient).lambdaconn
+	lambdaconn := testAccProvider.Meta().(*AWSClient).lambdaconn
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "aws_lambda_permission" {
@@ -416,7 +416,7 @@ func testAccCheckAWSLambdaPermissionDestroy(s *terraform.State) error {
 
 		// IAM is eventually consistent
 		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			err := isLambdaPermissionGone(rs, conn)
+			err := isLambdaPermissionGone(rs, lambdaconn)
 			if err != nil {
 				if !strings.HasPrefix(err.Error(), "Error unmarshalling Lambda policy") {
 					return resource.RetryableError(err)
@@ -433,7 +433,7 @@ func testAccCheckAWSLambdaPermissionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func isLambdaPermissionGone(rs *terraform.ResourceState, conn *lambda.Lambda) error {
+func isLambdaPermissionGone(rs *terraform.ResourceState, lambdaconn *lambda.Lambda) error {
 	params := &lambda.GetPolicyInput{
 		FunctionName: aws.String(rs.Primary.Attributes["function_name"]),
 	}
@@ -441,7 +441,7 @@ func isLambdaPermissionGone(rs *terraform.ResourceState, conn *lambda.Lambda) er
 		params.Qualifier = aws.String(v)
 	}
 
-	resp, err := conn.GetPolicy(params)
+	resp, err := lambdaconn.GetPolicy(params)
 	if awsErr, ok := err.(awserr.Error); ok {
 		if awsErr.Code() == "ResourceNotFoundException" {
 			// no policy found => all statements deleted
@@ -470,7 +470,7 @@ func isLambdaPermissionGone(rs *terraform.ResourceState, conn *lambda.Lambda) er
 		rs.Primary.ID, *state)
 }
 
-func lambdaPermissionExists(rs *terraform.ResourceState, conn *lambda.Lambda) (*LambdaPolicyStatement, error) {
+func lambdaPermissionExists(rs *terraform.ResourceState, lambdaconn *lambda.Lambda) (*LambdaPolicyStatement, error) {
 	params := &lambda.GetPolicyInput{
 		FunctionName: aws.String(rs.Primary.Attributes["function_name"]),
 	}
@@ -478,7 +478,7 @@ func lambdaPermissionExists(rs *terraform.ResourceState, conn *lambda.Lambda) (*
 		params.Qualifier = aws.String(v)
 	}
 
-	resp, err := conn.GetPolicy(params)
+	resp, err := lambdaconn.GetPolicy(params)
 	if err != nil {
 		return nil, fmt.Errorf("Lambda policy not found: %q", err)
 	}

@@ -110,6 +110,7 @@ type Config struct {
 	IamEndpoint              string
 	KinesisEndpoint          string
 	KmsEndpoint              string
+	LambdaEndpoint           string
 	RdsEndpoint              string
 	S3Endpoint               string
 	SnsEndpoint              string
@@ -326,6 +327,7 @@ func (c *Config) Client() (interface{}, error) {
 	awsIamSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.IamEndpoint)})
 	awsKinesisSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.KinesisEndpoint)})
 	awsKmsSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.KmsEndpoint)})
+	awsLambdaSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.LambdaEndpoint)})
 	awsRdsSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.RdsEndpoint)})
 	awsS3Sess := sess.Copy(&aws.Config{Endpoint: aws.String(c.S3Endpoint)})
 	awsSnsSess := sess.Copy(&aws.Config{Endpoint: aws.String(c.SnsEndpoint)})
@@ -408,7 +410,7 @@ func (c *Config) Client() (interface{}, error) {
 	client.iotconn = iot.New(sess)
 	client.kinesisconn = kinesis.New(awsKinesisSess)
 	client.kmsconn = kms.New(awsKmsSess)
-	client.lambdaconn = lambda.New(sess)
+	client.lambdaconn = lambda.New(awsLambdaSess)
 	client.lightsailconn = lightsail.New(sess)
 	client.mqconn = mq.New(sess)
 	client.opsworksconn = opsworks.New(sess)
