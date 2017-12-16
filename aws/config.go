@@ -350,7 +350,10 @@ func (c *Config) Client() (interface{}, error) {
 		}
 	}
 
-	if !c.SkipRequestingAccountId {
+	if c.SkipRequestingAccountId {
+		// Some services require an account ID in order to generate an ARN
+		client.accountid = "000000000000"
+	} else {
 		partition, accountId, err := GetAccountInfo(client.iamconn, client.stsconn, cp.ProviderName)
 		if err == nil {
 			client.partition = partition
